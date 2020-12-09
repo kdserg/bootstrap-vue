@@ -69,6 +69,9 @@ const ELLIPSIS_THRESHOLD = 3
 // Default # of buttons limit
 const DEFAULT_LIMIT = 5
 
+// Default # of buttons limit on xs screens
+const DEFAULT_XS_LIMIT = 3
+
 // --- Helper methods ---
 
 // Make an array of N to N+X
@@ -133,6 +136,17 @@ export const props = makePropsConfigurable(
         return true
       }
     ),
+    xsLimit: makeProp(
+      PROP_TYPE_NUMBER_STRING,
+      DEFAULT_XS_LIMIT,
+      /* istanbul ignore next */ value => {
+        if (toInteger(value, 0) < 1) {
+          warn('Prop "xs-limit" must be a number greater than "0"', NAME_PAGINATION)
+          return false
+        }
+        return true
+      }
+    ),
     nextClass: makeProp(PROP_TYPE_ARRAY_OBJECT_STRING),
     nextText: makeProp(PROP_TYPE_STRING, '\u203A'), // '›'
     pageClass: makeProp(PROP_TYPE_ARRAY_OBJECT_STRING),
@@ -158,7 +172,8 @@ export const paginationMixin = Vue.extend({
     return {
       currentPage,
       localNumberOfPages: 1,
-      localLimit: DEFAULT_LIMIT
+      localLimit: DEFAULT_LIMIT,
+      localXSLimit: DEFAULT_XS_LIMIT
     }
   },
   computed: {
@@ -259,33 +274,35 @@ export const paginationMixin = Vue.extend({
       // Generates the pageList array
       const { numberOfLinks, startNumber } = this.paginationParams
       const currentPage = this.computedCurrentPage
+      const xsLimit = this.localXSLimit
       // Generate list of page numbers
       const pages = makePageArray(startNumber, numberOfLinks)
       // We limit to a total of 3 page buttons on XS screens
       // So add classes to page links to hide them for XS breakpoint
       // Note: Ellipsis will also be hidden on XS screens
       // TODO: Make this visual limit configurable based on breakpoint(s)
-      if (pages.length > 3) {
+      if (pages.length > xsLimit) {
         const idx = currentPage - startNumber
         // THe following is a bootstrap-vue custom utility class
         const classes = 'bv-d-xs-down-none'
         if (idx === 0) {
           // Keep leftmost 3 buttons visible when current page is first page
-          for (let i = 3; i < pages.length; i++) {
+          for (let i = xsLimit; i < pages.length; i++) {
             pages[i].classes = classes
           }
         } else if (idx === pages.length - 1) {
           // Keep rightmost 3 buttons visible when current page is last page
-          for (let i = 0; i < pages.length - 3; i++) {
+          for (let i = 0; i < pages.length - xsLimit; i++) {
             pages[i].classes = classes
           }
         } else {
           // Hide all except current page, current page - 1 and current page + 1
-          for (let i = 0; i < idx - 1; i++) {
+
+          for (let i = 0; i < idx - Math.floor(xsLimit); i++) {
             // hide some left button(s)
             pages[i].classes = classes
           }
-          for (let i = pages.length - 1; i > idx + 1; i--) {
+          for (let i = pages.length - 1; i > idx + Math.floor(xsLimit); i--) {
             // hide some right button(s)
             pages[i].classes = classes
           }
