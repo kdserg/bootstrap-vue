@@ -90,6 +90,10 @@
             "description": "Maximum number of buttons to show (including ellipsis if shown, but excluding the bookend buttons)"
           },
           {
+            "prop": "xsLimit",
+            "description": "Maximum number of buttons to show on extra small screens (excluding the bookend buttons). Elipsis is not shown"
+          },
+          {
             "prop": "linkGen",
             "description": "Link generator function. See docs for details"
           },

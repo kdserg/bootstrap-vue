@@ -86,6 +86,10 @@
             "description": "Maximum number of buttons to show (including ellipsis if shown, but excluding the bookend buttons)"
           },
           {
+            "prop": "xsLimit",
+            "description": "Maximum number of buttons to show on extra small screens (excluding the bookend buttons). Elipsis is not shown"
+          },
+          {
             "prop": "nextClass",
             "version": "2.3.0",
             "description": "Class(es) to apply to the 'Go to next page' button"
