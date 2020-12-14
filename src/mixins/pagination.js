@@ -305,7 +305,7 @@ export const paginationMixin = Vue.extend({
             // hide some left button(s)
             pages[i].classes = classes
           }
-          for (let i = limit - 1; i > idx + mathFloor((xsLimit + 1) / 2); i--) {
+          for (let i = pages.length - 1; i > idx + mathFloor((xsLimit + 1) / 2); i--) {
             // hide some right button(s)
             pages[i].classes = classes
           }

@@ -19013,7 +19013,7 @@ var paginationMixin = Vue.extend({
             pages[_i2].classes = classes;
           }
 
-          for (var _i3 = limit - 1; _i3 > idx + mathFloor((xsLimit + 1) / 2); _i3--) {
+          for (var _i3 = pages.length - 1; _i3 > idx + mathFloor((xsLimit + 1) / 2); _i3--) {
             // hide some right button(s)
             pages[_i3].classes = classes;
           }
