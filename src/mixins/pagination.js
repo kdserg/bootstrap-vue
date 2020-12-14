@@ -83,6 +83,11 @@ const sanitizeLimit = value => {
   const limit = toInteger(value) || 1
   return limit < 1 ? DEFAULT_LIMIT : limit
 }
+// Sanitize the provided xslimit value (converting to a number)
+const sanitizeXsLimit = value => {
+  const xsLimit = toInteger(value) || 1
+  return xsLimit < 1 ? DEFAULT_XS_LIMIT : xsLimit
+}
 
 // Sanitize the provided current page number (converting to a number)
 const sanitizeCurrentPage = (val, numberOfPages) => {
@@ -204,6 +209,7 @@ export const paginationMixin = Vue.extend({
       // Determine if we should show the the ellipsis
       const {
         localLimit: limit,
+        localXsLimit: xsLimit,
         localNumberOfPages: numberOfPages,
         computedCurrentPage: currentPage,
         hideEllipsis,
@@ -268,13 +274,12 @@ export const paginationMixin = Vue.extend({
         }
       }
       numberOfLinks = mathMin(numberOfLinks, numberOfPages - startNumber + 1)
-      return { showFirstDots, showLastDots, numberOfLinks, startNumber }
+      return { showFirstDots, showLastDots, numberOfLinks, startNumber, xsLimit }
     },
     pageList() {
       // Generates the pageList array
-      const { numberOfLinks, startNumber } = this.paginationParams
+      const { numberOfLinks, startNumber, xsLimit } = this.paginationParams
       const currentPage = this.computedCurrentPage
-      const xsLimit = this.localXSLimit
       // Generate list of page numbers
       const pages = makePageArray(startNumber, numberOfLinks)
       // We limit to a total of 3 page buttons on XS screens
@@ -295,14 +300,31 @@ export const paginationMixin = Vue.extend({
           for (let i = 0; i < pages.length - xsLimit; i++) {
             pages[i].classes = classes
           }
-        } else {
-          // Hide all except current page, current page - 1 and current page + 1
-
-          for (let i = 0; i < idx - Math.floor(xsLimit); i++) {
+        } else if (idx === 1) {
+          for (let i = 0; i < idx - mathFloor((xsLimit - 1) / 2); i++) {
             // hide some left button(s)
             pages[i].classes = classes
           }
-          for (let i = pages.length - 1; i > idx + Math.floor(xsLimit); i--) {
+          for (let i = limit - 1; i > idx + mathFloor((xsLimit + 1) / 2); i--) {
+            // hide some right button(s)
+            pages[i].classes = classes
+          }
+        } else if (idx === pages.length - 2) {
+          for (let i = 0; i < idx - mathFloor((xsLimit + 1) / 2); i++) {
+            // hide some left button(s)
+            pages[i].classes = classes
+          }
+          for (let i = pages.length - 1; i > idx + mathFloor((xsLimit - 1) / 2); i--) {
+            // hide some right button(s)
+            pages[i].classes = classes
+          }
+        } else {
+          // Hide all except current page, current page - 1 and current page + 1
+          for (let i = 0; i < idx - mathFloor(xsLimit / 2); i++) {
+            // hide some left button(s)
+            pages[i].classes = classes
+          }
+          for (let i = pages.length - 1; i > idx + mathFloor(xsLimit / 2); i--) {
             // hide some right button(s)
             pages[i].classes = classes
           }
@@ -327,11 +349,17 @@ export const paginationMixin = Vue.extend({
       if (newValue !== oldValue) {
         this.localLimit = sanitizeLimit(newValue)
       }
+    },
+    xsLimit(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.localXSLimit = sanitizeXsLimit(newValue)
+      }
     }
   },
   created() {
     // Set our default values in data
     this.localLimit = sanitizeLimit(this.limit)
+    this.localXsLimit = sanitizeXsLimit(this.xsLimit)
     this.$nextTick(() => {
       // Sanity check
       this.currentPage =
