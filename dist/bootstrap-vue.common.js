@@ -18780,6 +18780,12 @@ var makePageArray = function makePageArray(startNumber, numberOfPages) {
 var sanitizeLimit = function sanitizeLimit(value) {
   var limit = toInteger(value) || 1;
   return limit < 1 ? DEFAULT_LIMIT : limit;
+}; // Sanitize the provided xslimit value (converting to a number)
+
+
+var sanitizeXsLimit = function sanitizeXsLimit(value) {
+  var xsLimit = toInteger(value) || 1;
+  return xsLimit < 1 ? DEFAULT_XS_LIMIT : xsLimit;
 }; // Sanitize the provided current page number (converting to a number)
 
 
@@ -18900,6 +18906,7 @@ var paginationMixin = Vue__default['default'].extend({
     paginationParams: function paginationParams() {
       // Determine if we should show the the ellipsis
       var limit = this.localLimit,
+          xsLimit = this.localXsLimit,
           numberOfPages = this.localNumberOfPages,
           currentPage = this.computedCurrentPage,
           hideEllipsis = this.hideEllipsis,
@@ -18977,16 +18984,17 @@ var paginationMixin = Vue__default['default'].extend({
         showFirstDots: showFirstDots,
         showLastDots: showLastDots,
         numberOfLinks: numberOfLinks,
-        startNumber: startNumber
+        startNumber: startNumber,
+        xsLimit: xsLimit
       };
     },
     pageList: function pageList() {
       // Generates the pageList array
       var _this$paginationParam = this.paginationParams,
           numberOfLinks = _this$paginationParam.numberOfLinks,
-          startNumber = _this$paginationParam.startNumber;
-      var currentPage = this.computedCurrentPage;
-      var xsLimit = this.localXSLimit; // Generate list of page numbers
+          startNumber = _this$paginationParam.startNumber,
+          xsLimit = _this$paginationParam.xsLimit;
+      var currentPage = this.computedCurrentPage; // Generate list of page numbers
 
       var pages = makePageArray(startNumber, numberOfLinks); // We limit to a total of 3 page buttons on XS screens
       // So add classes to page links to hide them for XS breakpoint
@@ -19008,16 +19016,36 @@ var paginationMixin = Vue__default['default'].extend({
           for (var _i = 0; _i < pages.length - xsLimit; _i++) {
             pages[_i].classes = classes;
           }
-        } else {
-          // Hide all except current page, current page - 1 and current page + 1
-          for (var _i2 = 0; _i2 < idx - Math.floor(xsLimit); _i2++) {
+        } else if (idx === 1) {
+          for (var _i2 = 0; _i2 < idx - mathFloor((xsLimit - 1) / 2); _i2++) {
             // hide some left button(s)
             pages[_i2].classes = classes;
           }
 
-          for (var _i3 = pages.length - 1; _i3 > idx + Math.floor(xsLimit); _i3--) {
+          for (var _i3 = limit - 1; _i3 > idx + mathFloor((xsLimit + 1) / 2); _i3--) {
             // hide some right button(s)
             pages[_i3].classes = classes;
+          }
+        } else if (idx === pages.length - 2) {
+          for (var _i4 = 0; _i4 < idx - mathFloor((xsLimit + 1) / 2); _i4++) {
+            // hide some left button(s)
+            pages[_i4].classes = classes;
+          }
+
+          for (var _i5 = pages.length - 1; _i5 > idx + mathFloor((xsLimit - 1) / 2); _i5--) {
+            // hide some right button(s)
+            pages[_i5].classes = classes;
+          }
+        } else {
+          // Hide all except current page, current page - 1 and current page + 1
+          for (var _i6 = 0; _i6 < idx - mathFloor(xsLimit / 2); _i6++) {
+            // hide some left button(s)
+            pages[_i6].classes = classes;
+          }
+
+          for (var _i7 = pages.length - 1; _i7 > idx + mathFloor(xsLimit / 2); _i7--) {
+            // hide some right button(s)
+            pages[_i7].classes = classes;
           }
         }
       }
@@ -19038,12 +19066,17 @@ var paginationMixin = Vue__default['default'].extend({
     if (newValue !== oldValue) {
       this.localLimit = sanitizeLimit(newValue);
     }
+  }), _defineProperty(_watch$e, "xsLimit", function xsLimit(newValue, oldValue) {
+    if (newValue !== oldValue) {
+      this.localXSLimit = sanitizeXsLimit(newValue);
+    }
   }), _watch$e),
   created: function created() {
     var _this = this;
 
     // Set our default values in data
     this.localLimit = sanitizeLimit(this.limit);
+    this.localXsLimit = sanitizeXsLimit(this.xsLimit);
     this.$nextTick(function () {
       // Sanity check
       _this.currentPage = _this.currentPage > _this.localNumberOfPages ? _this.localNumberOfPages : _this.currentPage;
